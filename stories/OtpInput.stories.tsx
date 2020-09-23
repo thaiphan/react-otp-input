@@ -9,5 +9,11 @@ const meta: Meta = {
 export default meta;
 
 export const Default = () => {
-  return <OtpInput />;
+  const [value, setValue] = React.useState('');
+
+  const handleChange = (otp: string) => {
+    setValue(otp);
+  };
+
+  return <OtpInput onChange={handleChange} value={value} />;
 };

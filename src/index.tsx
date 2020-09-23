@@ -89,8 +89,8 @@ const SingleOtpInput = ({
 };
 
 interface OtpInputProps {
-  numInputs: number;
-  onChange: (otp: string) => void;
+  numInputs?: number;
+  onChange?: (otp: string) => void;
   separator?: any;
   containerStyle?: object | string;
   inputStyle?: object | string;
@@ -104,37 +104,38 @@ interface OtpInputProps {
   value?: string;
 }
 
-interface OtpInputState {
-  activeInput: number;
-  otp?: string[];
-}
+const OtpInput: React.FC<OtpInputProps> = ({
+  containerStyle,
+  disabledStyle,
+  errorStyle,
+  focusStyle,
+  hasErrored,
+  inputStyle,
+  isDisabled = false,
+  isInputNum,
+  numInputs = 4,
+  onChange = (otp: string): void => console.log(otp),
+  separator,
+  shouldAutoFocus = false,
+  value = '',
+}) => {
+  const [activeInput, setActiveInput] = React.useState(
+    shouldAutoFocus ? 0 : -1
+  );
 
-class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
-  static defaultProps = {
-    numInputs: 4,
-    onChange: (otp: string): void => console.log(otp),
-    isDisabled: false,
-    shouldAutoFocus: false,
-    value: '',
-  };
-
-  state = {
-    activeInput: this.props.shouldAutoFocus ? 0 : -1,
-  };
-
-  getOtpValue = () =>
-    this.props.value ? this.props.value.toString().split('') : [];
+  const getOtpValue = () => (value ? value.toString().split('') : []);
 
   // Helper to return OTP from input
-  handleOtpChange = (otp: string[]) => {
-    const { onChange } = this.props;
+  const handleOtpChange = (otp: string[]) => {
     const otpValue = otp.join('');
 
-    onChange(otpValue);
+    if (onChange) {
+      onChange(otpValue);
+    }
   };
 
-  isInputValueValid = (value: string) => {
-    const isTypeValid = this.props.isInputNum
+  const isInputValueValid = (value: string) => {
+    const isTypeValid = isInputNum
       ? !isNaN(parseInt(value, 10))
       : typeof value === 'string';
 
@@ -142,40 +143,32 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
   };
 
   // Focus on input by index
-  focusInput = (input: number) => {
-    const { numInputs } = this.props;
-    const activeInput = Math.max(Math.min(numInputs - 1, input), 0);
-
-    this.setState({ activeInput });
+  const focusInput = (input: number) => {
+    setActiveInput(Math.max(Math.min(numInputs - 1, input), 0));
   };
 
   // Focus on next input
-  focusNextInput = () => {
-    const { activeInput } = this.state;
-    this.focusInput(activeInput + 1);
+  const focusNextInput = () => {
+    focusInput(activeInput + 1);
   };
 
   // Focus on previous input
-  focusPrevInput = () => {
-    const { activeInput } = this.state;
-    this.focusInput(activeInput - 1);
+  const focusPrevInput = () => {
+    focusInput(activeInput - 1);
   };
 
   // Change OTP value at focused input
-  changeCodeAtFocus = (value: string) => {
-    const { activeInput } = this.state;
-    const otp = this.getOtpValue();
+  const changeCodeAtFocus = (value: string) => {
+    const otp = getOtpValue();
     otp[activeInput] = value[0];
 
-    this.handleOtpChange(otp);
+    handleOtpChange(otp);
   };
 
   // Handle pasted OTP
-  handleOnPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handleOnPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const { numInputs } = this.props;
-    const { activeInput } = this.state;
-    const otp = this.getOtpValue();
+    const otp = getOtpValue();
 
     // Get pastedData in an array of max size (num of inputs - current position)
     const pastedData = e.clipboardData
@@ -190,32 +183,32 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
       }
     }
 
-    this.handleOtpChange(otp);
+    handleOtpChange(otp);
   };
 
-  handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
 
-    if (this.isInputValueValid(value)) {
-      this.changeCodeAtFocus(value);
+    if (isInputValueValid(value)) {
+      changeCodeAtFocus(value);
     }
   };
 
   // Handle cases of backspace, delete, left arrow, right arrow, space
-  handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.keyCode === BACKSPACE || e.key === 'Backspace') {
       e.preventDefault();
-      this.changeCodeAtFocus('');
-      this.focusPrevInput();
+      changeCodeAtFocus('');
+      focusPrevInput();
     } else if (e.keyCode === DELETE || e.key === 'Delete') {
       e.preventDefault();
-      this.changeCodeAtFocus('');
+      changeCodeAtFocus('');
     } else if (e.keyCode === LEFT_ARROW || e.key === 'ArrowLeft') {
       e.preventDefault();
-      this.focusPrevInput();
+      focusPrevInput();
     } else if (e.keyCode === RIGHT_ARROW || e.key === 'ArrowRight') {
       e.preventDefault();
-      this.focusNextInput();
+      focusNextInput();
     } else if (
       e.keyCode === SPACEBAR ||
       e.key === ' ' ||
@@ -227,13 +220,13 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
   };
 
   // The content may not have changed, but some input took place hence change the focus
-  handleOnInput = (e: any) => {
-    if (this.isInputValueValid(e.target.value)) {
-      this.focusNextInput();
+  const handleOnInput = (e: any) => {
+    if (isInputValueValid(e.target.value)) {
+      focusNextInput();
     } else {
       // This is a workaround for dealing with keyCode "229 Unidentified" on Android.
 
-      if (!this.props.isInputNum) {
+      if (!isInputNum) {
         const { nativeEvent } = e;
 
         if (
@@ -241,27 +234,15 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
           nativeEvent.inputType === 'deleteContentBackward'
         ) {
           e.preventDefault();
-          this.changeCodeAtFocus('');
-          this.focusPrevInput();
+          changeCodeAtFocus('');
+          focusPrevInput();
         }
       }
     }
   };
 
-  renderInputs = () => {
-    const { activeInput } = this.state;
-    const {
-      numInputs,
-      inputStyle,
-      focusStyle,
-      separator,
-      isDisabled,
-      disabledStyle,
-      hasErrored,
-      errorStyle,
-      isInputNum,
-    } = this.props;
-    const otp = this.getOtpValue();
+  const renderInputs = () => {
+    const otp = getOtpValue();
     const inputs = [];
 
     for (let i = 0; i < numInputs; i++) {
@@ -270,15 +251,14 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
           key={i}
           focus={activeInput === i}
           value={otp && otp[i]}
-          onChange={this.handleOnChange}
-          onKeyDown={this.handleOnKeyDown}
-          onInput={this.handleOnInput}
-          onPaste={this.handleOnPaste}
-          onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-            this.setState({ activeInput: i });
-            e.target.select();
+          onChange={handleOnChange}
+          onKeyDown={handleOnKeyDown}
+          onInput={handleOnInput}
+          onPaste={handleOnPaste}
+          onFocus={() => {
+            setActiveInput(i);
           }}
-          onBlur={() => this.setState({ activeInput: -1 })}
+          onBlur={() => setActiveInput(-1)}
           separator={separator}
           inputStyle={inputStyle}
           focusStyle={focusStyle}
@@ -295,23 +275,19 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
     return inputs;
   };
 
-  render() {
-    const { containerStyle } = this.props;
-
-    return (
-      <div
-        style={Object.assign(
-          { display: 'flex' },
-          isStyleObject(containerStyle) && containerStyle
-        )}
-        className={
-          !isStyleObject(containerStyle) ? (containerStyle as string) : ''
-        }
-      >
-        {this.renderInputs()}
-      </div>
-    );
-  }
-}
+  return (
+    <div
+      style={Object.assign(
+        { display: 'flex' },
+        isStyleObject(containerStyle) && containerStyle
+      )}
+      className={
+        !isStyleObject(containerStyle) ? (containerStyle as string) : ''
+      }
+    >
+      {renderInputs()}
+    </div>
+  );
+};
 
 export default OtpInput;
