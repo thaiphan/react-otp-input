@@ -7,6 +7,87 @@ const RIGHT_ARROW = 39;
 const DELETE = 46;
 const SPACEBAR = 32;
 
+// Doesn't really check if it's a style Object
+// Basic implementation to check if it's not a string
+// of classNames and is an Object
+// TODO: Better implementation
+const isStyleObject = (obj?: object | string) => typeof obj === 'object';
+
+const getClasses = (...classes: any[]) =>
+  classes.filter(c => !isStyleObject(c) && c !== false).join(' ');
+
+interface SingleOtpInputProps {
+  disabledStyle?: object | string;
+  errorStyle?: object | string;
+  focus: boolean;
+  focusStyle?: object | string;
+  hasErrored?: boolean;
+  inputStyle?: object | string;
+  isDisabled?: boolean;
+  isInputNum?: boolean;
+  isLastChild: boolean;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onInput?: (e: any) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+  separator?: any;
+  value?: string;
+}
+
+const SingleOtpInput = ({
+  separator,
+  isLastChild,
+  inputStyle,
+  focus,
+  isDisabled,
+  hasErrored,
+  errorStyle,
+  focusStyle,
+  disabledStyle,
+  isInputNum,
+  value,
+  ...rest
+}: SingleOtpInputProps) => {
+  const input = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (focus) {
+      input.current?.focus();
+      input.current?.select();
+    }
+  }, [focus]);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <input
+        autoComplete="off"
+        style={Object.assign(
+          { width: '1em', textAlign: 'center' },
+          isStyleObject(inputStyle) && inputStyle,
+          focus && isStyleObject(focusStyle) && focusStyle,
+          isDisabled && isStyleObject(disabledStyle) && disabledStyle,
+          hasErrored && isStyleObject(errorStyle) && errorStyle
+        )}
+        className={getClasses(
+          inputStyle,
+          focus && focusStyle,
+          isDisabled && disabledStyle,
+          hasErrored && errorStyle
+        )}
+        type={isInputNum ? 'tel' : 'text'}
+        maxLength={1}
+        ref={input}
+        disabled={isDisabled}
+        value={value ? value : ''}
+        {...rest}
+      />
+      {!isLastChild && separator}
+    </div>
+  );
+};
+
 interface OtpInputProps {
   numInputs: number;
   onChange: (otp: string) => void;
@@ -28,113 +109,6 @@ interface OtpInputState {
   otp?: string[];
 }
 
-// Doesn't really check if it's a style Object
-// Basic implementation to check if it's not a string
-// of classNames and is an Object
-// TODO: Better implementation
-const isStyleObject = (obj?: object | string) => typeof obj === 'object';
-
-interface SingleOtpInputProps {
-  disabledStyle?: object | string;
-  errorStyle?: object | string;
-  focus: boolean;
-  focusStyle?: object | string;
-  hasErrored?: boolean;
-  inputStyle?: object | string;
-  isDisabled?: boolean;
-  isInputNum?: boolean;
-  isLastChild: boolean;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onInput?: (e: any) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
-  separator?: any;
-  shouldAutoFocus?: boolean;
-  value?: string;
-}
-
-class SingleOtpInput extends React.PureComponent<SingleOtpInputProps> {
-  input = React.createRef<HTMLInputElement>();
-
-  // Focus on first render
-  // Only when shouldAutoFocus is true
-  componentDidMount() {
-    const {
-      input,
-      props: { focus, shouldAutoFocus },
-    } = this;
-
-    if (input && focus && shouldAutoFocus) {
-      input.current?.focus();
-    }
-  }
-
-  componentDidUpdate(prevProps: any) {
-    const {
-      input,
-      props: { focus },
-    } = this;
-
-    // Check if focusedInput changed
-    // Prevent calling function if input already in focus
-    if (prevProps.focus !== focus && input && focus) {
-      input.current?.focus();
-      input.current?.select();
-    }
-  }
-
-  getClasses = (...classes: any[]) =>
-    classes.filter(c => !isStyleObject(c) && c !== false).join(' ');
-
-  render() {
-    const {
-      separator,
-      isLastChild,
-      inputStyle,
-      focus,
-      isDisabled,
-      hasErrored,
-      errorStyle,
-      focusStyle,
-      disabledStyle,
-      shouldAutoFocus,
-      isInputNum,
-      value,
-      ...rest
-    } = this.props;
-
-    return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <input
-          autoComplete="off"
-          style={Object.assign(
-            { width: '1em', textAlign: 'center' },
-            isStyleObject(inputStyle) && inputStyle,
-            focus && isStyleObject(focusStyle) && focusStyle,
-            isDisabled && isStyleObject(disabledStyle) && disabledStyle,
-            hasErrored && isStyleObject(errorStyle) && errorStyle
-          )}
-          className={this.getClasses(
-            inputStyle,
-            focus && focusStyle,
-            isDisabled && disabledStyle,
-            hasErrored && errorStyle
-          )}
-          type={isInputNum ? 'tel' : 'text'}
-          maxLength={1}
-          ref={this.input}
-          disabled={isDisabled}
-          value={value ? value : ''}
-          {...rest}
-        />
-        {!isLastChild && separator}
-      </div>
-    );
-  }
-}
-
 class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
   static defaultProps = {
     numInputs: 4,
@@ -145,7 +119,7 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
   };
 
   state = {
-    activeInput: 0,
+    activeInput: this.props.shouldAutoFocus ? 0 : -1,
   };
 
   getOtpValue = () =>
@@ -285,7 +259,6 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
       disabledStyle,
       hasErrored,
       errorStyle,
-      shouldAutoFocus,
       isInputNum,
     } = this.props;
     const otp = this.getOtpValue();
@@ -314,7 +287,6 @@ class OtpInput extends React.Component<OtpInputProps, OtpInputState> {
           disabledStyle={disabledStyle}
           hasErrored={hasErrored}
           errorStyle={errorStyle}
-          shouldAutoFocus={shouldAutoFocus}
           isInputNum={isInputNum}
         />
       );
