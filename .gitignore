@@ -1,14 +1,5 @@
+*.log
+.DS_Store
 node_modules
-/lib
-/demo
-
-# Editor config
-.vscode
-
-
-# docz
-.docz
-
-.nyc_output
-coverage
-*.lcov
+.cache
+dist

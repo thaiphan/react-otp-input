@@ -2,15 +2,21 @@
   "name": "react-otp-input",
   "version": "2.0.2",
   "description": "A fully customizable, one-time password input component for the web built with React",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
-    "build": "babel src/lib -d lib",
-    "build:watch": "babel src/lib -w -d lib",
-    "format": "prettier --write '**/*.{js,jsx}'",
-    "lint": "eslint '**/*.{js,jsx}' --quiet",
-    "lint:fix": "eslint --fix 'src/**/*.{js,jsx}'",
-    "test": "nyc mocha",
-    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
   },
   "keywords": [],
   "peerDependencies": {
@@ -18,32 +24,20 @@
     "react-dom": "^16.2.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.11.6",
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-flow": "^6.23.0",
-    "babel-preset-react": "^6.24.1",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb": "^16.1.0",
-    "eslint-config-prettier": "^2.9.0",
-    "eslint-plugin-flowtype": "^2.49.3",
-    "eslint-plugin-import": "^2.17.3",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-prettier": "^2.6.0",
-    "eslint-plugin-react": "^7.13.0",
-    "flow-bin": "^0.73.0",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
+    "babel-loader": "^8.1.0",
     "gh-pages": "^1.2.0",
     "husky": "^4.3.0",
-    "mocha": "^6.2.2",
-    "nyc": "^14.1.1",
-    "prettier": "^1.18.2",
     "react": "^16.10.1",
-    "react-dom": "^16.10.1"
+    "react-dom": "^16.10.1",
+    "react-is": "^16.13.1",
+    "tsdx": "^0.14.0",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.3"
   },
   "author": "Ajay NS <ajay.ns@outlook.com>",
   "license": "MIT",
@@ -55,10 +49,12 @@
   "bugs": {
     "url": "https://github.com/devfolioco/react-otp-input/issues"
   },
+  "module": "dist/react-otp-input.esm.js",
   "dependencies": {},
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "tsdx lint"
     }
   }
 }
